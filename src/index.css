@@ -1640,3 +1640,36 @@ textarea.form-control {
   cursor: pointer;
   background: transparent;
 }
+
+/* 728x90 Ad Banner Styling & Mobile Responsiveness */
+.ad-banner-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+  width: 100%;
+  overflow: hidden;
+  height: 90px;
+}
+
+@media (max-width: 768px) {
+  .ad-banner-wrapper iframe {
+    transform: scale(0.8);
+    transform-origin: center center;
+  }
+  .ad-banner-wrapper {
+    height: 72px; /* 90px * 0.8 */
+    margin: 15px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .ad-banner-wrapper iframe {
+    transform: scale(0.48);
+    transform-origin: center center;
+  }
+  .ad-banner-wrapper {
+    height: 44px; /* 90px * 0.48 */
+    margin: 10px 0;
+  }
+}

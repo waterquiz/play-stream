@@ -5,6 +5,7 @@ import VideoDetail from './components/VideoDetail';
 import AdminLogin from './components/AdminLogin';
 import AdminDashboard from './components/AdminDashboard';
 import Pagination from './components/Pagination';
+import AdBanner from './components/AdBanner';
 import { 
   getVideos, 
   addVideo, 
@@ -215,10 +216,12 @@ function App() {
         ) : (
           /* Homepage View (Paging Activated) */
           <>
+            <AdBanner />
             <VideoGrid 
               videos={currentVideos} 
               onSelectVideo={handleSelectVideo} 
             />
+            <AdBanner />
             <Pagination 
               currentPage={currentPage}
               totalPages={totalPages}

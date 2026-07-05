@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ArrowLeft, Trash2 } from 'lucide-react';
+import AdBanner from './AdBanner';
 
 function VideoDetail({ video, videos, onBack, onSelectVideo, onDelete, isAdminMode }) {
   const { id, title, iframe, views, date, labels } = video;
@@ -26,6 +27,8 @@ function VideoDetail({ video, videos, onBack, onSelectVideo, onDelete, isAdminMo
         <ArrowLeft size={16} />
         Back to Home Feed
       </button>
+
+      <AdBanner />
 
       <div className="post-layout">
         {/* Main Player & Metadata */}
@@ -132,6 +135,8 @@ function VideoDetail({ video, videos, onBack, onSelectVideo, onDelete, isAdminMo
           </div>
         </div>
       </div>
+      
+      <AdBanner />
     </div>
   );
 }
