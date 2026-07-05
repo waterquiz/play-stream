@@ -20,6 +20,10 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedVideoId, setSelectedVideoId] = useState(null);
   
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const videosPerPage = 12;
+
   // Admin Authentication State
   const [isAdminRoute, setIsAdminRoute] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -78,17 +82,20 @@ function App() {
   const handleSearch = (query) => {
     setSearchQuery(query);
     setSelectedVideoId(null); // return to search feed
+    setCurrentPage(1); // Reset page to 1
   };
 
   const handleFilterCategory = (category) => {
     setActiveCategory(category);
     setSearchQuery('');
     setSelectedVideoId(null); // return to filtered feed
+    setCurrentPage(1); // Reset page to 1
   };
 
   const handleAddVideo = (newVideo) => {
     addVideo(newVideo);
     setVideos(getVideos()); // refresh list
+    setCurrentPage(1); // Go to page 1 to see the new upload!
   };
 
   const handleDeleteVideo = (id) => {
@@ -113,6 +120,7 @@ function App() {
       setCategoriesList(updatedList);
       if (activeCategory === catToDelete) {
         setActiveCategory('All');
+        setCurrentPage(1);
       }
     }
   };
@@ -124,6 +132,13 @@ function App() {
                           (video.description && video.description.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
   });
+
+  // Calculate dynamic pagination bounds
+  const totalPages = Math.ceil(filteredVideos.length / videosPerPage);
+  const paginatedVideos = filteredVideos.slice(
+    (currentPage - 1) * videosPerPage, 
+    currentPage * videosPerPage
+  );
 
   const activeVideo = videos.find(v => v.id === selectedVideoId);
   const finalCategories = ['All', ...categoriesList];
@@ -141,7 +156,7 @@ function App() {
     );
   }
 
-  // Render the new full-screen redesigned Admin Dashboard if user is authenticated admin
+  // Render the full-screen redesigned Admin Dashboard if user is authenticated admin
   if (isAdminMode) {
     return (
       <AdminDashboard 
@@ -163,7 +178,7 @@ function App() {
       <Header 
         onSearch={handleSearch} 
         onGoHome={handleBackToHome}
-        isAdminMode={false} // Hidden for standard users since admin has a dedicated dashboard!
+        isAdminMode={false}
         categories={finalCategories}
         activeCategory={activeCategory}
         onSelectCategory={handleFilterCategory}
@@ -179,14 +194,56 @@ function App() {
             onBack={handleBackToHome}
             onSelectVideo={handleSelectVideo}
             onDelete={handleDeleteVideo}
-            isAdminMode={false} // Hidden for standard users
+            isAdminMode={false}
           />
         ) : (
-          /* Homepage View */
-          <VideoGrid 
-            videos={filteredVideos} 
-            onSelectVideo={handleSelectVideo} 
-          />
+          /* Homepage View (renders only paginated videos) */
+          <>
+            <VideoGrid 
+              videos={paginatedVideos} 
+              onSelectVideo={handleSelectVideo} 
+            />
+
+            {/* Pagination Controls bar */}
+            {totalPages > 1 && (
+              <div className="pagination-container">
+                <button 
+                  className="pagination-btn" 
+                  onClick={() => {
+                    setCurrentPage(prev => Math.max(prev - 1, 1));
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  disabled={currentPage === 1}
+                >
+                  Prev
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button 
+                    key={page}
+                    className={`pagination-btn ${currentPage === page ? 'active' : ''}`}
+                    onClick={() => {
+                      setCurrentPage(page);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                <button 
+                  className="pagination-btn" 
+                  onClick={() => {
+                    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>
