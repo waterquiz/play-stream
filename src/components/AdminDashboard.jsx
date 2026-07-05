@@ -9,7 +9,10 @@ import {
   Trash2, 
   Plus,
   Video,
-  BarChart2
+  BarChart2,
+  Database,
+  Copy,
+  Check
 } from 'lucide-react';
 
 // Maps category names to colored dots
@@ -44,7 +47,8 @@ function AdminDashboard({
   onLogout,
   onViewSite 
 }) {
-  const [activeTab, setActiveTab] = useState('posts'); // 'dashboard', 'posts', 'upload', 'categories'
+  const [activeTab, setActiveTab] = useState('posts'); // 'dashboard', 'posts', 'upload', 'categories', 'export'
+  const [copied, setCopied] = useState(false);
 
   // Video Upload Form State
   const [title, setTitle] = useState('');
@@ -120,6 +124,105 @@ function AdminDashboard({
     setNewCatName('');
   };
 
+  // Compile database code dynamically
+  const generateDatabaseCode = () => {
+    const cleanCategories = categories.filter(c => c !== 'All');
+    
+    return `export const initialVideos = ${JSON.stringify(videos, null, 2)};
+
+const defaultCategories = ${JSON.stringify(cleanCategories, null, 2)};
+
+export const getStoredCategories = () => {
+  const stored = localStorage.getItem('play_stream_categories');
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch (e) {
+      console.error("Failed to parse stored categories", e);
+    }
+  }
+  // Initialize storage if empty
+  localStorage.setItem('play_stream_categories', JSON.stringify(defaultCategories));
+  return defaultCategories;
+};
+
+export const saveStoredCategories = (categories) => {
+  localStorage.setItem('play_stream_categories', JSON.stringify(categories));
+};
+
+export const addStoredCategory = (categoryName) => {
+  const list = getStoredCategories();
+  const trimmedName = categoryName.trim();
+  if (trimmedName && !list.includes(trimmedName)) {
+    list.push(trimmedName);
+    saveStoredCategories(list);
+  }
+  return list;
+};
+
+export const deleteStoredCategory = (categoryName) => {
+  const list = getStoredCategories();
+  const filtered = list.filter(c => c !== categoryName);
+  saveStoredCategories(filtered);
+  return filtered;
+};
+
+// Helper functions to manage LocalStorage Videos
+export const getVideos = () => {
+  const stored = localStorage.getItem('play_stream_videos');
+  const dbVersion = localStorage.getItem('play_stream_db_version');
+
+  if (stored && dbVersion === '2') {
+    try {
+      return JSON.parse(stored);
+    } catch (e) {
+      console.error("Failed to parse stored videos", e);
+    }
+  }
+  // Initialize or upgrade database to version 2 (with 12 items)
+  localStorage.setItem('play_stream_videos', JSON.stringify(initialVideos));
+  localStorage.setItem('play_stream_db_version', '2');
+  return initialVideos;
+};
+
+export const saveVideos = (videos) => {
+  localStorage.setItem('play_stream_videos', JSON.stringify(videos));
+};
+
+export const addVideo = (newVideo) => {
+  const list = getVideos();
+  const videoWithId = {
+    ...newVideo,
+    id: 'post-' + Date.now(),
+    date: new Date().toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  };
+  list.unshift(videoWithId);
+  saveVideos(list);
+  return videoWithId;
+};
+
+export const deleteVideo = (id) => {
+  const list = getVideos();
+  const filtered = list.filter(v => v.id !== id);
+  saveVideos(filtered);
+  return filtered;
+};
+`;
+  };
+
+  const handleCopyCode = () => {
+    const code = generateDatabaseCode();
+    navigator.clipboard.writeText(code).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
   return (
     <div className="admin-layout">
       {/* 1. Left Sidebar Navigation */}
@@ -164,6 +267,16 @@ function AdminDashboard({
           >
             <Folder size={18} />
             Categories
+          </button>
+
+          <div className="sidebar-section-header">PUBLISH</div>
+
+          <button 
+            className={`sidebar-nav-item ${activeTab === 'export' ? 'active' : ''}`}
+            onClick={() => setActiveTab('export')}
+          >
+            <Database size={18} />
+            Export Database
           </button>
         </nav>
 
@@ -222,7 +335,7 @@ function AdminDashboard({
 
             <div className="dashboard-promo-box">
               <h3>Direct Vercel Deployment Enabled</h3>
-              <p>Your streaming platform is integrated with GitHub. Adding, editing, or deleting items updates immediately in your browser cache and deploys live on every source update.</p>
+              <p>Your streaming platform is integrated with GitHub. Adding, editing, or deleting items updates immediately in your browser cache. To publish these changes to all visitors worldwide, use the **Export Database** page.</p>
               <button className="btn-primary" style={{ marginTop: '12px' }} onClick={() => setActiveTab('posts')}>
                 Manage Video Posts
               </button>
@@ -230,7 +343,7 @@ function AdminDashboard({
           </div>
         )}
 
-        {/* TAB B: ALL POSTS TABLE LIST (Second Image) */}
+        {/* TAB B: ALL POSTS TABLE LIST */}
         {activeTab === 'posts' && (
           <div className="dashboard-content">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -316,7 +429,7 @@ function AdminDashboard({
           </div>
         )}
 
-        {/* TAB C: UPLOAD NEW POST (Third Image) */}
+        {/* TAB C: UPLOAD NEW POST */}
         {activeTab === 'upload' && (
           <div className="dashboard-content">
             <h1 className="admin-page-title">Upload New Post</h1>
@@ -424,7 +537,7 @@ function AdminDashboard({
           </div>
         )}
 
-        {/* TAB D: CATEGORIES MANAGEMENT (Fourth Image) */}
+        {/* TAB D: CATEGORIES MANAGEMENT */}
         {activeTab === 'categories' && (
           <div className="dashboard-content">
             <h1 className="admin-page-title">Manage Categories</h1>
@@ -482,6 +595,90 @@ function AdminDashboard({
                     No custom labels created yet. Add one above!
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB E: EXPORT DATABASE */}
+        {activeTab === 'export' && (
+          <div className="dashboard-content">
+            <h1 className="admin-page-title">Export Database Code</h1>
+            <p className="admin-page-subtitle">Publish your local videos and categories globally to all visitors.</p>
+
+            <div className="admin-form-container" style={{ gap: '24px' }}>
+              <div style={{ backgroundColor: '#f8fafc', borderLeft: '4px solid var(--accent-color)', padding: '20px', borderRadius: '8px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px' }}>
+                  Why is this step required?
+                </h3>
+                <p style={{ fontSize: '13.5px', color: '#475569', lineHeight: '1.6' }}>
+                  The streaming website runs entirely inside the browser's memory. When you make changes (adding videos, deleting categories) in the Admin Panel, it only updates your local browser profile's cache.
+                </p>
+                <p style={{ fontSize: '13.5px', color: '#475569', lineHeight: '1.6', marginTop: '10px' }}>
+                  To save these changes permanently and publish them so that <strong>everyone in the world</strong> sees your custom list, copy the code below and save it to your project files before pushing to GitHub!
+                </p>
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '14px' }}>
+                  Follow these step-by-step instructions:
+                </h3>
+                <ol style={{ fontSize: '14px', color: '#475569', paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '10px', lineHeight: '1.5' }}>
+                  <li>
+                    Click the <strong>"Copy Database Code"</strong> button below to copy the compiled database script to your clipboard.
+                  </li>
+                  <li>
+                    Open your project's codebase in VS Code or any text editor on your computer.
+                  </li>
+                  <li>
+                    Open the file: <code style={{ backgroundColor: '#e2e8f0', padding: '3px 6px', borderRadius: '4px', fontSize: '12.5px', fontWeight: '600' }}>src/data/initialVideos.js</code>.
+                  </li>
+                  <li>
+                    Select all text in that file, delete it, and paste this copied code instead. Save the file.
+                  </li>
+                  <li>
+                    Run your standard terminal command to deploy (e.g. <code style={{ backgroundColor: '#e2e8f0', padding: '3px 6px', borderRadius: '4px', fontSize: '12.5px', fontWeight: '600' }}>git push origin main</code>). Vercel will rebuild the website automatically and update the home feed for everyone!
+                  </li>
+                </ol>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Compiled Database Code
+                  </span>
+                  <button 
+                    type="button" 
+                    className="btn-primary" 
+                    onClick={handleCopyCode}
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '8px', 
+                      padding: '8px 16px', 
+                      fontSize: '13px',
+                      backgroundColor: copied ? '#10b981' : 'var(--accent-color)',
+                      borderColor: copied ? '#10b981' : 'var(--accent-color)'
+                    }}
+                  >
+                    {copied ? <Check size={16} /> : <Copy size={16} />}
+                    {copied ? 'Copied to Clipboard!' : 'Copy Database Code'}
+                  </button>
+                </div>
+
+                <pre style={{ 
+                  backgroundColor: '#0f172a', 
+                  color: '#94a3b8', 
+                  padding: '20px', 
+                  borderRadius: '8px', 
+                  fontFamily: 'monospace', 
+                  fontSize: '12px', 
+                  overflow: 'auto', 
+                  maxHeight: '300px',
+                  border: '1px solid #1e293b'
+                }}>
+                  {generateDatabaseCode()}
+                </pre>
               </div>
             </div>
           </div>
