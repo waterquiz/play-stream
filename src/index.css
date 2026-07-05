@@ -1555,46 +1555,76 @@ textarea.form-control {
   }
 }
 
-/* Pagination Navigation Styling */
-.pagination-container {
+/* Homepage Pagination Bar Styling */
+.pagination-bar {
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 10px;
   margin: 40px 0 60px 0;
   width: 100%;
 }
 
 .pagination-btn {
   background-color: var(--card-bg);
-  color: var(--text-muted);
   border: 1px solid var(--border-color);
-  font-family: var(--font-primary);
-  font-size: 14px;
-  font-weight: 600;
-  padding: 8px 16px;
-  border-radius: 8px;
+  color: var(--text-main);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   outline: none;
-  min-width: 40px;
 }
 
 .pagination-btn:hover:not(:disabled) {
-  background-color: #f1f5f9;
-  color: var(--text-main);
-  border-color: #cbd5e1;
-}
-
-.pagination-btn.active {
-  background-color: var(--accent-color);
-  color: white;
   border-color: var(--accent-color);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+  color: var(--accent-color);
+  transform: scale(1.08);
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.15);
 }
 
 .pagination-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.35;
   cursor: not-allowed;
-  background-color: #f1f5f9;
+}
+
+.pagination-numbers {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination-number-btn {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-family: var(--font-primary);
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  outline: none;
+}
+
+.pagination-number-btn:hover {
+  border-color: var(--text-main);
+  color: var(--text-main);
+  transform: scale(1.08);
+}
+
+.pagination-number-btn.active {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 }
