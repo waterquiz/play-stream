@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import Header from './components/Header';
 import VideoGrid from './components/VideoGrid';
 import VideoDetail from './components/VideoDetail';
-import AdminModal from './components/AdminModal';
 import AdminLogin from './components/AdminLogin';
+import AdminDashboard from './components/AdminDashboard';
 import { 
   getVideos, 
   addVideo, 
@@ -19,7 +19,6 @@ function App() {
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedVideoId, setSelectedVideoId] = useState(null);
-  const [isAdminOpen, setIsAdminOpen] = useState(false);
   
   // Admin Authentication State
   const [isAdminRoute, setIsAdminRoute] = useState(false);
@@ -90,7 +89,6 @@ function App() {
   const handleAddVideo = (newVideo) => {
     addVideo(newVideo);
     setVideos(getVideos()); // refresh list
-    setIsAdminOpen(false);
   };
 
   const handleDeleteVideo = (id) => {
@@ -143,19 +141,33 @@ function App() {
     );
   }
 
+  // Render the new full-screen redesigned Admin Dashboard if user is authenticated admin
+  if (isAdminMode) {
+    return (
+      <AdminDashboard 
+        videos={videos}
+        categories={finalCategories}
+        onAddVideo={handleAddVideo}
+        onDeleteVideo={handleDeleteVideo}
+        onAddCategory={handleAddCategory}
+        onDeleteCategory={handleDeleteCategory}
+        onLogout={handleLogout}
+        onViewSite={handleCancelLogin}
+      />
+    );
+  }
+
   return (
     <div className="app-container">
       {/* Premium Header */}
       <Header 
         onSearch={handleSearch} 
         onGoHome={handleBackToHome}
-        onOpenAdmin={() => setIsAdminOpen(true)}
-        isAdminMode={isAdminMode}
+        isAdminMode={false} // Hidden for standard users since admin has a dedicated dashboard!
         categories={finalCategories}
         activeCategory={activeCategory}
         onSelectCategory={handleFilterCategory}
         showCategories={!selectedVideoId}
-        onLogout={handleLogout}
       />
 
       <main className="container">
@@ -167,7 +179,7 @@ function App() {
             onBack={handleBackToHome}
             onSelectVideo={handleSelectVideo}
             onDelete={handleDeleteVideo}
-            isAdminMode={isAdminMode}
+            isAdminMode={false} // Hidden for standard users
           />
         ) : (
           /* Homepage View */
@@ -177,17 +189,6 @@ function App() {
           />
         )}
       </main>
-
-      {/* Admin Local CMS Modal */}
-      {isAdminOpen && (
-        <AdminModal 
-          onClose={() => setIsAdminOpen(false)}
-          onAdd={handleAddVideo}
-          categories={finalCategories}
-          onAddCategory={handleAddCategory}
-          onDeleteCategory={handleDeleteCategory}
-        />
-      )}
     </div>
   );
 }
