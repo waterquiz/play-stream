@@ -174,21 +174,19 @@ export const deleteStoredCategory = (categoryName) => {
 // Helper functions to manage LocalStorage Videos
 export const getVideos = () => {
   const stored = localStorage.getItem('play_stream_videos');
-  if (stored) {
+  const dbVersion = localStorage.getItem('play_stream_db_version');
+
+  if (stored && dbVersion === '2') {
     try {
-      const parsed = JSON.parse(stored);
-      // Ensure local storage is updated to hold 12 items if user hasn't overridden
-      if (parsed.length < 12) {
-        localStorage.setItem('play_stream_videos', JSON.stringify(initialVideos));
-        return initialVideos;
-      }
-      return parsed;
+      return JSON.parse(stored);
     } catch (e) {
       console.error("Failed to parse stored videos", e);
     }
   }
-  // Initialize storage if empty
+  
+  // Initialize or upgrade database to version 2 (with 12 items)
   localStorage.setItem('play_stream_videos', JSON.stringify(initialVideos));
+  localStorage.setItem('play_stream_db_version', '2');
   return initialVideos;
 };
 
