@@ -72,8 +72,16 @@ function App() {
 
   // Video Navigation Handlers
   const handleSelectVideo = (id) => {
-    setSelectedVideoId(id);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const adKey = `play_stream_ad_opened_${id}`;
+    const hasOpenedAd = sessionStorage.getItem(adKey) === 'true';
+
+    if (!hasOpenedAd) {
+      window.open('https://www.effectivecpmnetwork.com/m5wnxabgx?key=1588f8989d1ff11a4516db2624ef89c8', '_blank');
+      sessionStorage.setItem(adKey, 'true');
+    } else {
+      setSelectedVideoId(id);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const handleBackToHome = () => {

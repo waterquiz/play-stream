@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 
 function VideoDetail({ video, videos, onBack, onSelectVideo, onDelete, isAdminMode }) {
   const { id, title, iframe, views, date, labels } = video;
+  const [hasClickedPlayAd, setHasClickedPlayAd] = useState(false);
 
   // Extract iframe src
   const getIframeSrc = (iframeString) => {
@@ -28,16 +30,27 @@ function VideoDetail({ video, videos, onBack, onSelectVideo, onDelete, isAdminMo
       <div className="post-layout">
         {/* Main Player & Metadata */}
         <div className="player-section">
-          <div className="player-container">
+          <div className="player-container" style={{ position: 'relative' }}>
             {iframeSrc ? (
-              <iframe
-                src={iframeSrc}
-                title={title}
-                scrolling="no"
-                frameBorder="0"
-                allowFullScreen={true}
-                allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-              />
+              <>
+                {!hasClickedPlayAd && (
+                  <div 
+                    className="player-iframe-overlay"
+                    onClick={() => {
+                      window.open('https://www.effectivecpmnetwork.com/m5wnxabgx?key=1588f8989d1ff11a4516db2624ef89c8', '_blank');
+                      setHasClickedPlayAd(true);
+                    }}
+                  />
+                )}
+                <iframe
+                  src={iframeSrc}
+                  title={title}
+                  scrolling="no"
+                  frameBorder="0"
+                  allowFullScreen={true}
+                  allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                />
+              </>
             ) : (
               <div style={{ padding: '40px', color: '#ffffff', textAlign: 'center' }}>
                 No video embed source provided.
