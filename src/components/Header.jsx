@@ -11,7 +11,8 @@ import {
   FlaskConical, 
   Music, 
   Gamepad2, 
-  Tv 
+  Tv,
+  LogOut
 } from 'lucide-react';
 
 // Maps category names to premium Lucide icons
@@ -44,7 +45,8 @@ function Header({
   categories, 
   activeCategory, 
   onSelectCategory,
-  showCategories 
+  showCategories,
+  onLogout
 }) {
   const [val, setVal] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -109,28 +111,49 @@ function Header({
             </div>
             
             {isAdminMode && (
-              <button 
-                className="social-btn admin-btn" 
-                onClick={onOpenAdmin}
-                title="Add Video"
-              >
-                <Plus size={16} style={{ marginRight: '6px' }} />
-                Add Video
-              </button>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <button 
+                  className="social-btn admin-btn" 
+                  onClick={onOpenAdmin}
+                  title="Add Video"
+                >
+                  <Plus size={16} style={{ marginRight: '6px' }} />
+                  Add Video
+                </button>
+                <button 
+                  className="social-btn" 
+                  onClick={onLogout}
+                  title="Sign Out"
+                  style={{ borderRadius: '9999px', padding: '0 16px', width: 'auto', height: '38px', fontSize: '13px', fontWeight: '600' }}
+                >
+                  <LogOut size={14} style={{ marginRight: '6px', display: 'inline', verticalAlign: 'middle' }} />
+                  Sign Out
+                </button>
+              </div>
             )}
           </div>
 
           {/* Mobile Right Controls: Hamburger Menu and Admin buttons */}
           <div className="mobile-controls">
             {isAdminMode && (
-              <button 
-                className="social-btn admin-btn" 
-                onClick={onOpenAdmin}
-                title="Add Video"
-                style={{ padding: '0 12px', minWidth: '40px', height: '38px', borderRadius: '50%' }}
-              >
-                <Plus size={16} />
-              </button>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <button 
+                  className="social-btn admin-btn" 
+                  onClick={onOpenAdmin}
+                  title="Add Video"
+                  style={{ padding: '0 12px', minWidth: '40px', height: '38px', borderRadius: '50%' }}
+                >
+                  <Plus size={16} />
+                </button>
+                <button 
+                  className="social-btn" 
+                  onClick={onLogout}
+                  title="Sign Out"
+                  style={{ borderRadius: '50%', minWidth: '40px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0' }}
+                >
+                  <LogOut size={16} />
+                </button>
+              </div>
             )}
             <button 
               className="menu-toggle-btn" 

@@ -35,7 +35,7 @@ export const initialVideos = [
   {
     id: "post4",
     title: "Interstellar Soundtrack - Live Orchestral Suite by Hans Zimmer",
-    labels: ["Music", "Concert"],
+    labels: ["Music"],
     date: "Saturday, 4 July 2026",
     imageUrl: "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=600&auto=format&fit=crop&q=60",
     duration: "24:10",
@@ -57,7 +57,7 @@ export const initialVideos = [
   {
     id: "post6",
     title: "Dune: Part Two - Final Official IMAX Trailer (4K)",
-    labels: ["Movies", "Sci-Fi"],
+    labels: ["Movies"],
     date: "Saturday, 4 July 2026",
     imageUrl: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=600&auto=format&fit=crop&q=60",
     duration: "3:12",
@@ -90,7 +90,7 @@ export const initialVideos = [
   {
     id: "post9",
     title: "The Legend of Zelda: Tears of the Kingdom - Complete Orchestral Suite",
-    labels: ["Music", "Gaming"],
+    labels: ["Music"],
     date: "Tuesday, 30 June 2026",
     imageUrl: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&auto=format&fit=crop&q=60",
     duration: "18:40",
@@ -133,7 +133,45 @@ export const initialVideos = [
   }
 ];
 
-// Helper functions to manage LocalStorage
+// Helper functions for initial category list management
+const defaultCategories = ['Animation', 'Movies', 'Space', 'Science', 'Music'];
+
+export const getStoredCategories = () => {
+  const stored = localStorage.getItem('play_stream_categories');
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch (e) {
+      console.error("Failed to parse stored categories", e);
+    }
+  }
+  // Initialize storage if empty
+  localStorage.setItem('play_stream_categories', JSON.stringify(defaultCategories));
+  return defaultCategories;
+};
+
+export const saveStoredCategories = (categories) => {
+  localStorage.setItem('play_stream_categories', JSON.stringify(categories));
+};
+
+export const addStoredCategory = (categoryName) => {
+  const list = getStoredCategories();
+  const trimmedName = categoryName.trim();
+  if (trimmedName && !list.includes(trimmedName)) {
+    list.push(trimmedName);
+    saveStoredCategories(list);
+  }
+  return list;
+};
+
+export const deleteStoredCategory = (categoryName) => {
+  const list = getStoredCategories();
+  const filtered = list.filter(c => c !== categoryName);
+  saveStoredCategories(filtered);
+  return filtered;
+};
+
+// Helper functions to manage LocalStorage Videos
 export const getVideos = () => {
   const stored = localStorage.getItem('play_stream_videos');
   if (stored) {

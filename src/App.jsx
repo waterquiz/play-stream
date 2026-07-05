@@ -3,30 +3,70 @@ import Header from './components/Header';
 import VideoGrid from './components/VideoGrid';
 import VideoDetail from './components/VideoDetail';
 import AdminModal from './components/AdminModal';
-import { getVideos, addVideo, deleteVideo } from './data/initialVideos';
+import AdminLogin from './components/AdminLogin';
+import { 
+  getVideos, 
+  addVideo, 
+  deleteVideo,
+  getStoredCategories,
+  addStoredCategory,
+  deleteStoredCategory
+} from './data/initialVideos';
 
 function App() {
   const [videos, setVideos] = useState([]);
+  const [categoriesList, setCategoriesList] = useState([]);
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedVideoId, setSelectedVideoId] = useState(null);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const [isAdminMode, setIsAdminMode] = useState(false);
+  
+  // Admin Authentication State
+  const [isAdminRoute, setIsAdminRoute] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Check URL query parameter for Admin Mode
+  // Check URL query parameters and session storage for Admin Mode on mount and on popstate
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('admin') === 'true') {
-      setIsAdminMode(true);
-    }
+    const checkAdminState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const isAdmin = params.get('admin') === 'true';
+      setIsAdminRoute(isAdmin);
+
+      const loggedIn = sessionStorage.getItem('play_stream_admin_auth') === 'true';
+      setIsAuthenticated(loggedIn);
+    };
+
+    checkAdminState();
+    window.addEventListener('popstate', checkAdminState);
+    return () => window.removeEventListener('popstate', checkAdminState);
   }, []);
 
-  // Initialize videos from localStorage
+  // Initialize videos & categories from storage
   useEffect(() => {
     setVideos(getVideos());
+    setCategoriesList(getStoredCategories());
   }, []);
 
-  // Handlers
+  // Login Handlers
+  const handleLoginSuccess = () => {
+    sessionStorage.setItem('play_stream_admin_auth', 'true');
+    setIsAuthenticated(true);
+  };
+
+  const handleCancelLogin = () => {
+    // Clear admin parameter from URL and return to standard home view
+    window.history.pushState({}, '', window.location.pathname);
+    setIsAdminRoute(false);
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('play_stream_admin_auth');
+    setIsAuthenticated(false);
+    setIsAdminRoute(false);
+    window.history.pushState({}, '', window.location.pathname);
+  };
+
+  // Video Navigation Handlers
   const handleSelectVideo = (id) => {
     setSelectedVideoId(id);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -63,12 +103,23 @@ function App() {
     }
   };
 
-  // Get active labels - restricted to the 6 official main categories
-  const getCategories = () => {
-    return ['All', 'Animation', 'Movies', 'Space', 'Science', 'Music'];
+  // Dynamic Category Label Management Handlers
+  const handleAddCategory = (newCat) => {
+    const updatedList = addStoredCategory(newCat);
+    setCategoriesList(updatedList);
   };
 
-  // Filtered List
+  const handleDeleteCategory = (catToDelete) => {
+    if (window.confirm(`Are you sure you want to delete the category "${catToDelete}"? Videos belonging to this category will remain, but the filter label will be removed.`)) {
+      const updatedList = deleteStoredCategory(catToDelete);
+      setCategoriesList(updatedList);
+      if (activeCategory === catToDelete) {
+        setActiveCategory('All');
+      }
+    }
+  };
+
+  // Filtered list based on dynamic categories
   const filteredVideos = videos.filter(video => {
     const matchesCategory = activeCategory === 'All' || (video.labels && video.labels.includes(activeCategory));
     const matchesSearch = video.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -76,21 +127,35 @@ function App() {
     return matchesCategory && matchesSearch;
   });
 
-  // Find active video details
   const activeVideo = videos.find(v => v.id === selectedVideoId);
+  const finalCategories = ['All', ...categoriesList];
+  
+  // Decide whether admin controls should be active
+  const isAdminMode = isAdminRoute && isAuthenticated;
+
+  // Intercept view with Login card if admin parameter is present but user is not logged in
+  if (isAdminRoute && !isAuthenticated) {
+    return (
+      <AdminLogin 
+        onLoginSuccess={handleLoginSuccess}
+        onCancel={handleCancelLogin}
+      />
+    );
+  }
 
   return (
     <div className="app-container">
-      {/* Premium Header - handles categories and search responsive layout */}
+      {/* Premium Header */}
       <Header 
         onSearch={handleSearch} 
         onGoHome={handleBackToHome}
         onOpenAdmin={() => setIsAdminOpen(true)}
         isAdminMode={isAdminMode}
-        categories={getCategories()}
+        categories={finalCategories}
         activeCategory={activeCategory}
         onSelectCategory={handleFilterCategory}
         showCategories={!selectedVideoId}
+        onLogout={handleLogout}
       />
 
       <main className="container">
@@ -118,6 +183,9 @@ function App() {
         <AdminModal 
           onClose={() => setIsAdminOpen(false)}
           onAdd={handleAddVideo}
+          categories={finalCategories}
+          onAddCategory={handleAddCategory}
+          onDeleteCategory={handleDeleteCategory}
         />
       )}
     </div>
