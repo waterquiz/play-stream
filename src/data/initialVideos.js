@@ -5,9 +5,14 @@ const defaultCategories = [];
 export const getStoredCategories = () => {
   const stored = localStorage.getItem('play_stream_categories');
   const dbVersion = localStorage.getItem('play_stream_categories_version');
-  if (stored && dbVersion === '3') {
+  
+  if (stored) {
     try {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      if (dbVersion !== '3') {
+        localStorage.setItem('play_stream_categories_version', '3');
+      }
+      return parsed;
     } catch (e) {
       console.error("Failed to parse stored categories", e);
     }
@@ -29,7 +34,8 @@ export const addStoredCategory = (categoryName) => {
     list.push(trimmedName);
     saveStoredCategories(list);
   }
-  return list;
+  // Return a new array reference copy so React detects the state change and re-renders
+  return [...list];
 };
 
 export const deleteStoredCategory = (categoryName) => {
@@ -44,9 +50,13 @@ export const getVideos = () => {
   const stored = localStorage.getItem('play_stream_videos');
   const dbVersion = localStorage.getItem('play_stream_db_version');
 
-  if (stored && dbVersion === '3') {
+  if (stored) {
     try {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      if (dbVersion !== '3') {
+        localStorage.setItem('play_stream_db_version', '3');
+      }
+      return parsed;
     } catch (e) {
       console.error("Failed to parse stored videos", e);
     }
