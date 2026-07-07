@@ -4,7 +4,8 @@ const defaultCategories = [];
 
 export const getStoredCategories = () => {
   const stored = localStorage.getItem('play_stream_categories');
-  if (stored) {
+  const dbVersion = localStorage.getItem('play_stream_categories_version');
+  if (stored && dbVersion === '3') {
     try {
       return JSON.parse(stored);
     } catch (e) {
@@ -13,6 +14,7 @@ export const getStoredCategories = () => {
   }
   // Initialize storage if empty
   localStorage.setItem('play_stream_categories', JSON.stringify(defaultCategories));
+  localStorage.setItem('play_stream_categories_version', '3');
   return defaultCategories;
 };
 
@@ -42,16 +44,16 @@ export const getVideos = () => {
   const stored = localStorage.getItem('play_stream_videos');
   const dbVersion = localStorage.getItem('play_stream_db_version');
 
-  if (stored && dbVersion === '2') {
+  if (stored && dbVersion === '3') {
     try {
       return JSON.parse(stored);
     } catch (e) {
       console.error("Failed to parse stored videos", e);
     }
   }
-  // Initialize or upgrade database to version 2 (with 12 items)
+  // Initialize or upgrade database to version 3 (with 0 items)
   localStorage.setItem('play_stream_videos', JSON.stringify(initialVideos));
-  localStorage.setItem('play_stream_db_version', '2');
+  localStorage.setItem('play_stream_db_version', '3');
   return initialVideos;
 };
 
